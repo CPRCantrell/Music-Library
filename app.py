@@ -55,7 +55,44 @@ song_schema = SongSchema()
 songs_schema = SongSchema(many=True)
 
 # Resources
+class SongListResource(Resource):
+    def get(self):
+        return songs_schema.dump(Song.query.all()), 200
 
+    def post(self):
+        try:
+            add_song = songs_schema.load(request.get_json())
+            db.session.add(add_song)
+            db.session.commit()
+            return songs_schema.dump(add_song), 201
+        except ValidationError as error:
+            return error.messages, 400
 
+class SongResource(Resource):
+    def get(self, song_id):
+        return song_schema.dump(Song.query.get_or_404(song_id)), 200
+
+    def put(self, song_id):
+        song_from_db = Song.query.get_or_404(song_id)
+        if 'title' in request.json:
+            song_from_db.title = request.json['title']
+        if 'artist' in request.json:
+            song_from_db.artist = request.json['artist']
+        if 'album' in request.json:
+            song_from_db.album = request.json['album']
+        if 'relase_date' in request.json:
+            song_from_db.relase_date = request.json['relase_date']
+        if 'genre' in request.json:
+            song_from_db.genre = request.json['genre']
+        db.session.commit()
+        return song_schema.dump(song_from_db), 200
+
+    def delete(self, song_id):
+        song_from_db = Song.query.get_or_404(song_id)
+        db.session.delete(song_from_db)
+        db.session.commit()
+        return '', 204
 
 # Routes
+api.add_resource(SongListResource, '/api/songs')
+api.add_resource(SongResource, '/api/songs/<int:song_id>')
