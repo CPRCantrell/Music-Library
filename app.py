@@ -61,10 +61,10 @@ class SongListResource(Resource):
 
     def post(self):
         try:
-            add_song = songs_schema.load(request.get_json())
+            add_song = song_schema.load(request.get_json())
             db.session.add(add_song)
             db.session.commit()
-            return songs_schema.dump(add_song), 201
+            return song_schema.dump(add_song), 201
         except ValidationError as error:
             return error.messages, 400
 
