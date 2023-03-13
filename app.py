@@ -37,7 +37,7 @@ class Song(db.Model):
 
 # Schemas
 class SongSchema(ma.Schema):
-    id = fields.Interger(Primary_key=True)
+    id = fields.Integer(Primary_key=True)
     title = fields.String(rquired=True)
     artist = fields.String(rquired=True)
     album = fields.String(rquired=True)
