@@ -32,6 +32,7 @@ class Song(db.Model):
     relase_date = db.Column(db.Date, nullable=False)
     genre = db.Column(db.String(255), nullable=False)
     likes = db.Column(db.Integer, nullable=False, default=0)
+    run_time = db.Column(db.Integer, nullable=False)
 
     def __repr__(self) -> str:
         return f'{self.id} {self.title} {self.artist} {self.album} {self.relase_date} {self.genre} {self.likes}'
@@ -45,9 +46,10 @@ class SongSchema(ma.Schema):
     relase_date = fields.Date(rquired=True)
     genre = fields.String(rquired=True)
     like = fields.Integer(required=True)
+    run_time = fields.Integer(required=True)
 
     class Meta:
-        fields = ('id','title','artist','album','relase_date','genre','likes')
+        fields = ('id','title','artist','album','relase_date','genre','likes','run_time')
 
     @post_load
     def create_song(self, data, **kwargs):
@@ -59,7 +61,14 @@ songs_schema = SongSchema(many=True)
 # Resources
 class SongListResource(Resource):
     def get(self):
-        return songs_schema.dump(Song.query.all()), 200
+        songs = Song.query.all()
+
+        songs = {
+            'songs':songs_schema.dump(songs),
+            'total_runtime': round(float(sum([song.run_time for song in songs  ])/60), 2)
+        }
+
+        return songs, 200
 
     def post(self):
         try:
@@ -86,6 +95,8 @@ class SongResource(Resource):
             song_from_db.relase_date = request.json['relase_date']
         if 'genre' in request.json:
             song_from_db.genre = request.json['genre']
+        if 'run_time' in request.json:
+            song_from_db.run_time = request.json['run_time']
         db.session.commit()
         return song_schema.dump(song_from_db), 200
 
